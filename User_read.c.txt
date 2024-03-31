@@ -1,0 +1,33 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<fcntl.h>
+#include<unistd.h>
+#define Datasize 25
+int main(){
+        int fd;
+        char kernelData[Datasize];
+          fd=open("/dev/new_device",O_RDONLY|777);
+            if(fd<0){
+                printf("The file open failed\n");
+                return-1;
+        }
+        else{
+                printf("The file opened with fd as %d\n",fd);
+        }
+        read(fd,kernelData,Datasize);
+         printf("Retrieving key%s\n",kernelData);
+         FILE *file = fopen("keyfile.pem", "w");
+
+int results = fputs(kernelData, file);
+if (results == EOF) {
+    // Failed to write do error code here.
+}
+fclose(file);
+
+         close(fd);
+         printf("The file is closed with the fd in read 1: %d\n",fd);
+         return 0;
+}
+}
+   

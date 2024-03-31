@@ -1,0 +1,9 @@
+#!/bin/bash
+./userrd
+file=$1
+passfile=${file%.enc}_pwd.enc
+privatekey=privkey.pem
+
+openssl rsautl -decrypt -inkey ${privatekey} -in ${passfile} -out ${passfile%.enc}
+openssl enc -d -aes-128-cbc -in ${file} -pass file:./${passfile%.enc} | tar xz
+rm ${passfile%.enc} ${file} ${file%.enc}_pwd.enc

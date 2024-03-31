@@ -1,0 +1,40 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<fcntl.h>
+#include<unistd.h>
+#define Datasize 5000
+int main(void)
+{
+    char line[5000][200];
+        char fname[20];
+    FILE *fptr = NULL; 
+    int i = 0;
+    printf("\n\n File reading:\n");
+        printf("------------------------------------------------------\n");
+        printf("Hiding the key");
+        scanf("%s",fname);
+
+    fptr = fopen(fname, "r");
+    while(fgets(line[i],200, fptr))
+        {
+        line[i][strlen(line[i]) - 1] = '\0';
+        i++;
+    }
+        int fd;
+        char*userData;
+        userData=line;
+        fd=open("/dev/new_device",O_WRONLY|435);
+        if(fd<0){
+                printf("The file open failed\n");
+                return-1;
+}
+        else{
+                printf("The file opened with fd as %d\n",fd);
+        }
+        write(fd,userData,Datasize);
+        printf("Key securely stored in kernel ");
+         close(fd);
+         printf("The file is closed with the fd in read 1: %d\n",fd);
+         return 0;
+}

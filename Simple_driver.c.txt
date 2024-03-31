@@ -1,0 +1,112 @@
+#include<linux/iniat.h>
+#include<linux/module.h>
+#include<linux/kernel.h>
+#include<linux/device.h>
+#include<linux/device.h>
+#include<linux/cdev.h>
+#include<linux/fs.h>
+#include<linux/slab.h>
+#include<linux/string.h>
+#include<linux/uaccess.h>
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("ARYAMAN,AVIRAL,SHOURYA");
+static int mydevice_open(struct inode*inod,struct file*flip);
+static int mydevice_release(struct inode*inod,struct file*flip);
+static ssize_t mydevice_read(struct file*flip,char __user*buff,size_t len,loff_t*loff);
+static ssize_t mydevice_write (struct file*flip,const char *buff,size_t len,loff_t*loff);
+static dev_t device_num;
+static struct class*cl;
+static char*ptr=NULL;
+static struct cdev my_cdev;
+struct file_operations fops = {
+.owner=THIS_MODULE,
+.read=mydevice_read,
+.write=mydevice_write,
+.open=mydevice_open,
+.release=mydevice_release,
+};
+static int init_function(void){
+        printk(KERN_INFO "simple driver: Inside the init function\n");
+        if(alloc_chrdev_region(&device_num,0,1,"my_device")<0)
+        {
+                printk(KERN_ALERT  "simple _driver:The device number allocation fails.\n");
+                return -1;}
+else{
+printk(KERN_INFO"Simple drive the device number allocation is done successfully\n");
+               printk(KERN_INFO "simple_driver:Major and minor numbers of my device are %d,%d \n",MAJOR(device_num),MINOR(device_num));}
+        if((cl=class_create(THIS_MODULE,"my_class"))==NULL){
+                printk(KERN_INFO"simple_driver : the class creation has failed.\n");
+                unregister_chrdev_region(device_num,1);
+                return -1;}
+                else{
+                        printk(KERN_INFO"Class is created successfully\n");
+                }
+if(device_create(cl,NULL,device_num,NULL,"new_device")==NULL){
+        printk(KERN_INFO"simple_driver:Device creation failed.\n");
+        class_destroy(cl);
+        unregister_chrdev_region(device_num,1);
+        return -1;
+}
+else{
+        printk(KERN_INFO"simple_driver : the device file is created successfully.\n");
+}
+cdev_init(&my_cdev,&fops);
+if(cdev_add(&my_cdev,device_num,1)==-1){
+        device_destroy(cl,device_num);
+        class_destroy(cl);
+        unregister_chrdev_region(device_num,1);
+        return -1;
+}
+
+else{
+        printk(KERN_INFO "simple_driver:The cdev structure initialisation done successfully.\n");
+}
+return 0;}
+static int mydevice_open (struct inode*inod,struct file*flip){
+        printk(KERN_INFO"simple_driver :The new device opened successfully.\n");
+        return 0;
+}
+static int mydevice_release(struct inode*inod,struct file*flip){
+        printk(KERN_INFO"simple_driver: Inside the exit function of the driver.\n");
+        return 0;
+}
+__attribute__ ((access (write_only,1,3))) static ssize_t mydevice_write(struct file*flip,const char *buff,size_t len,loff_t*loff){
+        if(len>5000){
+                printk(KERN_INFO"simple driver:The length is greater than the kernel buffer length\n");
+                return EFAULT;
+                        }
+        if(copy_from_user(ptr,buff,len)){
+                return -EFAULT;
+        }
+        else{
+                printk(KERN_INFO"simple driver:The device writes to the device successfully\n");
+                printk("Data written to device(ptr): %s\n",buff);
+}
+return len;
+}
+static ssize_t mydevice_read(struct file*flip,char __user*buff,size_t len,loff_t*loff){
+
+                printk(KERN_INFO"simple driver inside the my_device read function.\n");
+}
+static ssize_t mydevice_read(struct file*flip,char __user*buff,size_t len,loff_t*loff){
+
+                printk(KERN_INFO"simple driver inside the my_device read function.\n");
+                if(copy_to_user(buff,ptr,len)){
+                        printk(KERN_INFO"simple_driver :The data unable to read.\n");
+                        return -EFAULT;
+                }
+                else{
+                        printk(KERN_INFO"simple device driver.Data read from device(ptr) %s\n",buff);
+
+                }
+return len;}
+static void exit_function(void){
+        printk(KERN_ALERT  "simple_driver :Inside the exit function of the driver\n.");
+        cdev_del(&my_cdev);
+        device_destroy(cl,device_num);
+        class_destroy(cl);
+        unregister_chrdev_region(device_num,1);
+        printk( KERN_INFO "simple_driver :Inside the exit function of the driver.\n");
+}
+module_init(init_function);
+module_exit(exit_function);
