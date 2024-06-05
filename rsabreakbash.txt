@@ -1,0 +1,23 @@
+openssl genrsa -out private.pem 256
+openssl rsa -in private.pem -outform PEM -pubout -out public.pem
+openssl rsa -pubin -in public.pem -text -noout
+echo "ibase=16;B19D0C77A45D2A8FD9B9EEE42BEBE6CE0F0AF88B5FF529982D2D52257412A507" | bc
+Math/msieve/msieve -v modulus
+openssl rsautl -in infile -out outfile -inkey keyfile
+asn1=SEQUENCE:rsa_key
+
+[rsa_key]
+version=INTEGER:0
+modulus=INTEGER:104858525161996743015660844283952197757474165382179955883127822147578025359281
+pubExp=INTEGER:65537
+privExp=INTEGER:56804434423705240814883301869373863267476412577961439541673172952208380081681
+p=INTEGER:314145575842192171786697356886365937213
+q=INTEGER:333789597007316615528524847901455624837
+e1=INTEGER:198801800700048493716244048087418418297
+e2=INTEGER:262567024650475204546165394874097713157
+coeff=INTEGER:314089677933479444419374108961008140655
+openssl asn1parse -genconf akey -out newkey3.der
+openssl rsa  -inform der  -in newkey3.der -text -check
+openssl rsa -in newkey3.der -inform DER -outform PEM -out dupkey.pem
+openssl rsautl -decrypt -in encrypted1.txt -out decrypted2.txt -inkey dupkey.pem
+cat decrypted2.txt
